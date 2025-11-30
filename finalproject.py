@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import truncnorm
 
 # -----------------------------
 # Stochastic recovery time based on surgery length
@@ -11,14 +10,14 @@ def recovery_time(surgery_length):
     return base + noise
 
 # -----------------------------
-# Surgery distribution sampling using truncated normal
+# Surgery time distribution sampling using Log-Normal 
+# mu=26.123 and sigma=1.862
+# From "Integrating Data Mining and Optimization Techniques on Surgery Scheduling"
+# DOI:10.1007/978-3-642-35527-1_49
 # -----------------------------
-def sample_surgery_durations_truncnorm(n_samples, mean=160, std=40, lower=30, upper=300):
-    # Convert bounds to truncated normal parameters (surgeries range from 30-300 minutes)
-    a = (lower - mean) / std
-    b = (upper - mean) / std
-    # Sample from truncated normal
-    samples = truncnorm.rvs(a, b, loc=mean, scale=std, size=n_samples)
+def sample_surgery_durations_lognorm(n_samples, mu=26.123, sigma=1.862):
+    samples = np.random.lognormal(mean=mu, sigma=sigma, size=n_samples)
+
     return samples
 
 # -----------------------------
@@ -32,8 +31,8 @@ day_length = 12 * 60  # minutes
 arrival_lambda = 18
 arrival_times = np.cumsum(np.random.exponential(scale=60 / arrival_lambda, size=n_samples))
 
-# Use truncated normal to sample surgery durations
-surgery_durations = sample_surgery_durations_truncnorm(n_samples, mean=150, std=40, lower=30, upper=300)
+# Use log normal to sample surgery durations
+surgery_durations = sample_surgery_durations_lognorm(n_samples)
 recovery_durations = np.array([recovery_time(s) for s in surgery_durations])
 
 # -----------------------------
