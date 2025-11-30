@@ -17,7 +17,7 @@ def recovery_time(surgery_length):
     Includes gamma noise for biological variability.
     """
     base = 8 + 0.25 * surgery_length  # deterministic component
-    noise = np.random.gamma(shape=2, scale=10)  # stochastic component
+    noise = np.random.gamma(shape=2, scale=14)  # stochastic component
     return base + noise
 
 
@@ -40,7 +40,7 @@ def sample_surgery_durations(n_samples, x_range=(0, 1)):
 # -----------------------------
 n_samples = 2000
 n_or = 3
-n_recovery = 3
+n_recovery = 2
 day_length = 12 * 60  # minutes in 12 hours
 
 # Exponential arrivals (Poisson process)
