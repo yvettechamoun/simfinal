@@ -161,3 +161,26 @@ plt.xlabel("Scheduled Patient Index")
 plt.ylabel("Wait Time (minutes)")
 plt.grid(True)
 plt.show()
+
+#histogram to show how MHMH performed
+plt.hist(surgery_durations, bins=30, color='steelblue')
+plt.title("Distribution of Surgery Durations (MH Samples)")
+plt.xlabel("Minutes")
+plt.ylabel("Frequency")
+plt.grid(True)
+plt.show()
+
+#scatterplot of surgery duration vs recovery duration
+plt.scatter(surgery_durations, recovery_durations, alpha=0.5)
+plt.title("Surgery Duration vs Recovery Duration")
+plt.xlabel("Surgery Duration (min)")
+plt.ylabel("Recovery Duration (min)")
+plt.grid(True)
+plt.show()
+
+
+plt.plot(surgery_durations[:180])
+plt.title("MH Trace Plot (180 samples)")
+plt.xlabel("Iteration")
+plt.ylabel("Sample Value")
+plt.show()
