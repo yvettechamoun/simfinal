@@ -121,7 +121,7 @@ def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery,
 
 
 #simulation parameters
-n_samples = 18000  # number of patients in one day
+n_samples = 180  # number of patients in one day
 n_or = 3  # number of ORs
 n_recovery = 2  # number of recovery beds
 day_length = 12 * 60  # 12 hours in minutes
