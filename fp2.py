@@ -26,14 +26,16 @@ def sample_surgery_durations_mh(n_samples, x0=150,domain=(30, 300),
     total_samples_needed = n_samples * thinning + burn_in
 
     for _ in range(total_samples_needed):
-        # Truncated normal proposal around current sample
+        # normal proposal around current sample
         a, b = (low - x_current) / proposal_std, (high - x_current) / proposal_std
-        x_proposal = truncnorm.rvs(a, b, loc=x_current, scale=proposal_std)
+        x_proposal = np.random.normal(x_current, proposal_std)
+
+        if x_proposal < low or x_proposal > high:
+            samples.append(x_current)
+            continue
 
         # Acceptance probability
-        p_current = surgery_duration_function(x_current)
-        p_proposal = surgery_duration_function(x_proposal)
-        alpha = min(1, p_proposal / p_current)
+        alpha = min(1, surgery_duration_function(x_proposal) / surgery_duration_function(x_current))
 
         # Accept/reject
         if np.random.rand() < alpha:
@@ -119,7 +121,7 @@ def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery,
 
 
 #simulation parameters
-n_samples = 180  # number of patients in one day
+n_samples = 18000  # number of patients in one day
 n_or = 3  # number of ORs
 n_recovery = 2  # number of recovery beds
 day_length = 12 * 60  # 12 hours in minutes
@@ -129,12 +131,12 @@ arrival_lambda = 15  # average patient arrivals per hour
 arrival_times = np.cumsum(np.random.exponential(scale=60 / arrival_lambda, size=n_samples))
 
 # sample surgery durations using Metropolis-Hastings
-surgery_durations = sample_surgery_durations_mh_truncnorm(
+surgery_durations = sample_surgery_durations_mh(
     n_samples=n_samples,
     x0=150,
     domain=(30, 300),
     proposal_std=40,
-    burn_in=100,
+    burn_in=1000,
     thinning=5,
     random_seed=42
 )
@@ -175,7 +177,7 @@ plt.grid(True)
 plt.show()
 
 #histogram to show how MHMH performed
-plt.hist(surgery_durations, bins=30, color='steelblue')
+plt.hist(surgery_durations, bins=40, color='steelblue')
 plt.title("Distribution of Surgery Durations (MH Samples)")
 plt.xlabel("Minutes")
 plt.ylabel("Frequency")
