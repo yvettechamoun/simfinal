@@ -60,7 +60,7 @@ def recovery_time(surgery_length, seed=None):
     return base + noise
 
 # Simulation with overflow allowance
-def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery, day_length):
+def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery, day_length, recovery_forecast=False):
     or_available = np.zeros(n_or)
     rec_available = np.zeros(n_recovery)
     wait_or = []
@@ -76,7 +76,7 @@ def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery,
 
         idx_rec = np.argmin(rec_available)
         idx_or = np.argmin(or_available)
-        start_or = max(arrival, or_available[idx_or], rec_available[idx_rec])
+        start_or = start_or = max(arrival, or_available[idx_or], rec_available[idx_rec]-(s_time * recovery_forecast))  
         finish_or = start_or + s_time
 
         if start_or >= day_length:
@@ -106,7 +106,7 @@ def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery,
 # Worker function for parallel processing
 def run_single_config(args):
     """Run simulation for a single (n_or, n_recovery) configuration with multiple replications."""
-    n_or, n_recovery, n_samples, day_length, arrival_lambda, n_replications = args
+    n_or, n_recovery, n_samples, day_length, arrival_lambda, n_replications, recovery_forecast = args
     
     avg_waits = []
     utilizations = []
@@ -132,7 +132,7 @@ def run_single_config(args):
         
         # Run simulation
         wait_or, wait_rec, or_util, overflow_prob, scheduled = simulate_with_wait_arrays(
-            arrival_times, surgery_durations, recovery_durations, n_or, n_recovery, day_length
+            arrival_times, surgery_durations, recovery_durations, n_or, n_recovery, day_length, recovery_forecast
         )
         
         avg_wait = np.mean(wait_or) if len(wait_or) > 0 else 0
@@ -159,10 +159,11 @@ def main():
     values = max_range - min_range
     or_range = range(min_range, max_range)
     recovery_range = range(min_range, max_range)
+    recovery_forecast = True # Considers whether or not recovery times are forecasted
     
     # Create all configurations
     configs = [
-        (n_or, n_rec, n_samples, day_length, arrival_lambda, n_replications)
+        (n_or, n_rec, n_samples, day_length, arrival_lambda, n_replications, recovery_forecast)
         for n_or, n_rec in product(or_range, recovery_range)
     ]
     

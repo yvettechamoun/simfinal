@@ -57,7 +57,7 @@ def recovery_time(surgery_length):
 
 
 #simulate with overflow allowance (surgeries that start before day is over will finish even if the day ends)
-def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery, day_length):
+def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery, day_length, recovery_forecast=False):
     or_available = np.zeros(n_or)
     rec_available = np.zeros(n_recovery)
     # initialize blank lists to store waiting times
@@ -81,7 +81,7 @@ def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery,
         # OR scheduling
         idx_or = np.argmin(or_available)  # assign patient to first available OR
         # surgery start: arrival time, first available OR, or first available Recovery Bed
-        start_or = max(arrival, or_available[idx_or], rec_available[idx_rec])  
+        start_or = max(arrival, or_available[idx_or], rec_available[idx_rec]-(s_time * recovery_forecast))  
         finish_or = start_or + s_time  # compute the finishing time
 
         # if the next start time would be after the day is over, add to overflow count
@@ -126,6 +126,7 @@ n_or = 3  # number of ORs
 n_recovery = 2  # number of recovery beds
 day_length = 12 * 60  # 12 hours in minutes
 arrival_lambda = 15  # average patient arrivals per hour
+recovery_forecast = False # Considers whether or not recovery times are forecasted
 
 # generate patient arrival times
 arrival_times = np.cumsum(np.random.exponential(scale=60 / arrival_lambda, size=n_samples))
@@ -146,7 +147,7 @@ recovery_durations = np.array([recovery_time(s) for s in surgery_durations])
 
 # run the simulation
 wait_or, wait_rec, or_util, overflow_prob, scheduled_count = simulate_with_wait_arrays(
-    arrival_times, surgery_durations, recovery_durations, n_or, n_recovery, day_length
+    arrival_times, surgery_durations, recovery_durations, n_or, n_recovery, day_length, recovery_forecast
 )
 
 #calculate average waiting time
