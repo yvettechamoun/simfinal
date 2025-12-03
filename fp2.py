@@ -66,31 +66,37 @@ def simulate_with_wait_arrays(arrivals, surgeries, recoveries, n_or, n_recovery,
         s_time = surgeries[i] #generate surgery time
         r_time = recoveries[i] #generate recovery time
 
+        # recovery room scheduling -> Must happen before OR is scheduled
+        # -> OR cant be assigned without recovery bed available
+        idx_rec = np.argmin(rec_available)  # assign patient to earliest available bed
 
         # OR scheduling
         idx_or = np.argmin(or_available)  # assign patient to first available OR
-        start_or = max(arrival, or_available[idx_or])  # surgery start: arrival time or first available OR
+        # surgery start: arrival time, first available OR, or first available Recovery Bed
+        start_or = max(arrival, or_available[idx_or], rec_available[idx_rec])  
         finish_or = start_or + s_time  # compute the finishing time
 
         # if the next start time would be after the day is over, add to overflow count
         if start_or >= day_length:
             overflow_count += 1
             continue
-        # if not, the next surgery can be scheduled
-
+        # If not, the next surgery can be scheduled
         scheduled_count += 1
         wait_or.append(start_or - arrival) #append waiting time to list (surgery start time - arrival time)
-        #calculate how much the OR is busy, within the 12-hour period
+
+        # Calculate how much the OR is busy, within the 12-hour period
         busy_within_day = max(0.0, min(finish_or, day_length) - start_or)
         or_busy_within_day[idx_or] += busy_within_day
-        #update availability
+
+        # Update availability
         or_available[idx_or] = finish_or
 
-        #recovery room scheduling
-        idx_rec = np.argmin(rec_available)  # assign patient to earliest available bed
-        start_rec = max(finish_or,
-        rec_available[idx_rec])  # recovery time begins after surgery or whenever bed is available
+        # Recovery room scheduling
+        # Recovery time begins after surgery or whenever bed is available
+        start_rec = max(finish_or, rec_available[idx_rec])  # Should alwasys be the same number, keeping logic
+
         finish_rec = start_rec + r_time  # calculate when recovery time finishes
+        # wait should always be 0 with current algorithm
         wait_rec.append(start_rec - finish_or)  # calculate how long patient waits for bed after surgery
         rec_available[idx_rec] = finish_rec  # update recovery bed availability
 
