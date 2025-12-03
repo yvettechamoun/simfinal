@@ -5,10 +5,16 @@ from scipy.stats import truncnorm
 
 #define complex surgery duration function
 def surgery_duration_function(x):
-    return np.exp(-np.sin(3 * x ** 3 - 3 * np.cos(x)))
-#generate sample surgery times using MH algorithm
-#domain 30-300 minutes
-def sample_surgery_durations_mh_truncnorm(n_samples, x0=150,domain=(30, 300),
+    # Three modes: quick procedures, standard, and complex surgeries
+    mode1 = 0.5 * np.exp(-((x - 50)**2) / (2 * 10**2))   # Quick: ~45 min
+    mode2 = 1.1 * np.exp(-((x - 120)**2) / (2 * 50**2))  # Standard: ~120 min
+    mode3 = 0.6 * np.exp(-((x - 240)**2) / (2 * 20**2))  # Complex: ~240 min
+    return mode1 + mode2 + mode3
+
+# generate sample surgery times using MH algorithm
+# domain 30-300 minutes
+# Switched to normal distribution -> symmetric
+def sample_surgery_durations_mh(n_samples, x0=150,domain=(30, 300),
                                           proposal_std=40,
                                           burn_in=1000,
                                           thinning=5,
